@@ -1,5 +1,6 @@
 import os
 import csv
+import argparse
 from copy import deepcopy
 from pathlib import Path
 
@@ -9,25 +10,37 @@ class Numbrix9:
         file = open(base_path/filename)
         csvreader = csv.reader(file)
         self.orig_grid = []
+        self.num_columns = -1
+        self.valid_puzzle = True
         for row in csvreader:
             grid_row = []
-            for j in range(9):
-                grid_row.append(int(row[j]))
+            num_columns = 0
+            for item in row:
+                grid_row.append(int(item))
+                num_columns += 1
+            if self.num_columns == -1:
+                self.num_columns = num_columns
+            elif self.num_columns != num_columns:
+                self.valid_puzzle = False
+                print("Invalid puzzle. One of the rows has a different number of columns.")
+                return
             self.orig_grid.append(grid_row)
 
+        self.num_rows = len(self.orig_grid)
 
         self.grid = deepcopy(self.orig_grid)
 
         self.missing_pos = []
         self.missing_neg = []
 
-        self.min_num = 82
-        self.min_loc = (0,0)
+        self.max_number = self.num_columns * self.num_rows
+        self.min_num = self.max_number + 1
+        self.min_loc = (-1,-1)
 
         self.has_nums = set()
 
-        for i in range(9):
-            for j in range(9):
+        for i in range(self.num_rows):
+            for j in range(self.num_columns):
                 num = self.orig_grid[i][j]
                 if num != 0:
                     self.has_nums.add(num)
@@ -40,6 +53,9 @@ class Numbrix9:
                         self.missing_pos.append((i, j))
 
     def depth_first(self):
+        if not self.valid_puzzle:
+            print("Cannot solve as the puzzle is invalid")
+            return False
         # give the algorithm the location of the lowest number
         
         i, j = self.min_loc
@@ -49,7 +65,7 @@ class Numbrix9:
             return self.depth_first_alg(i, j, self.min_num)
     
     def depth_first_alg_dec(self, i, j, test_value):
-        if i < 0 or i >= 9 or j < 0 or j >= 9:
+        if i < 0 or i >= self.num_rows or j < 0 or j >= self.num_columns:
             return False
         # if the grid square is occupied and it doesn't match the value we want to put in it, it is not a valid path
         if self.grid[i][j] != 0 and self.grid[i][j] != test_value:
@@ -75,7 +91,7 @@ class Numbrix9:
 
     def depth_first_alg(self, i, j, test_value):
         # if the indecies are out of bounds, this is an invalid path
-        if i < 0 or i >= 9 or j < 0 or j >= 9:
+        if i < 0 or i >= self.num_rows or j < 0 or j >= self.num_columns:
             return False
         # if the grid square is occupied and it doesn't match the value we want to put in it, it is not a valid path
         if self.grid[i][j] != 0 and self.grid[i][j] != test_value:
@@ -89,7 +105,7 @@ class Numbrix9:
         self.has_nums.add(test_value)
 
         # if we're looking for the last number and the cell is blank or matches, we have found a valid path
-        if test_value == 81 and (self.grid[i][j] == 0 or self.grid[i][j] == test_value):
+        if test_value == self.max_number and (self.grid[i][j] == 0 or self.grid[i][j] == test_value):
             return True
 
         # first we see if the cell has a neighbor of the next value up. If it does, we send the algorithm through that cell. It may not be a valid path based on previous choices, so if it isn't we need to know so we can reset our current location if needed
@@ -130,7 +146,7 @@ class Numbrix9:
         
         
     def look_forward(self, i, j, test_value):
-        if i < 0 or i >= 9 or j < 0 or j >= 9:
+        if i < 0 or i >= self.num_rows or j < 0 or j >= self.num_columns:
             return False
         return self.grid[i][j] == test_value
         
@@ -145,8 +161,8 @@ class Numbrix9:
     def to_string(self):
         to_return = ""
 
-        for i in range(9):
-            for j in range(9):
+        for i in range(self.num_rows):
+            for j in range(self.num_columns):
                 num = self.grid[i][j]
                 if (num < 10 and num != 0):
                     to_return += " "
@@ -161,7 +177,10 @@ class Numbrix9:
 
 
 if __name__ == "__main__":
-    puzzle = Numbrix9()
+    parser = argparse.ArgumentParser(description="Program to solve the Numbrix 9 puzzle from Parade.")
+    parser.add_argument("-f", "--filename", help="Name of the file holding the desired puzzle to solve", default="puzzles/easy_may_19_2026.csv")
+    args = parser.parse_args()
+    puzzle = Numbrix9(args.filename)
     print(puzzle.to_string())
     if puzzle.depth_first():
         print("Found valid solution!")
