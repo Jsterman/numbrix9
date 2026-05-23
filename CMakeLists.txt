@@ -14,12 +14,14 @@ add_library(numbrix_board)
 target_sources(numbrix_board
   PRIVATE
     src/NumbrixBoard.cpp
+    src/NumbrixSolver.cpp
   PUBLIC
     FILE_SET HEADERS
     BASE_DIRS
       include
     FILES
       include/NumbrixBoard.h
+      include/NumbrixSolver.h
 )
 
 target_link_libraries(numbrix9

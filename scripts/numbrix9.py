@@ -105,7 +105,7 @@ class Numbrix9:
         self.has_nums.add(test_value)
 
         # if we're looking for the last number and the cell is blank or matches, we have found a valid path
-        if test_value == self.max_number and (self.grid[i][j] == 0 or self.grid[i][j] == test_value):
+        if test_value == self.max_number:
             return True
 
         # first we see if the cell has a neighbor of the next value up. If it does, we send the algorithm through that cell. It may not be a valid path based on previous choices, so if it isn't we need to know so we can reset our current location if needed

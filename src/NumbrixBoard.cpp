@@ -5,16 +5,19 @@
 #include <sstream>
 #include <cmath>
 #include "NumbrixBoard.h"
+#include <iostream>
 
 
-numbrix::NumbrixBoard::NumbrixBoard()
-{
-
-}
+numbrix::NumbrixBoard::NumbrixBoard() {}
 
 numbrix::NumbrixBoard::NumbrixBoard(std::string filename):NumbrixBoard()
 {
-    readPuzzle(filename);
+    readBoardFromFile(filename);
+}
+
+numbrix::NumbrixBoard::NumbrixBoard(const NumbrixBoard &old)
+{
+    copyBoard(old);
 }
 
 numbrix::NumbrixBoard::~NumbrixBoard()
@@ -22,34 +25,36 @@ numbrix::NumbrixBoard::~NumbrixBoard()
     if (board == nullptr) return;
 
     for (int i = 0; i < numRows; i++) {
-        delete[] backupBoard[i];
         delete[] board[i];
     }
-    delete[] backupBoard;
     delete[] board;
 }
-int numbrix::NumbrixBoard::getValue(const int &i, const int &j)
+int numbrix::NumbrixBoard::getValue(const int &i, const int &j) const
 {
     if (board == nullptr) return -1;
-    numberOfReads++;
     return board[i][j];
 }
 
 void numbrix::NumbrixBoard::setValue(const int &row, const int &column, const int &value)
 {
     if (board == nullptr) return;
-    numberOfWrites++;
     board[row][column] = value;
 }
 
-void numbrix::NumbrixBoard::readPuzzle(std::string filename)
+void numbrix::NumbrixBoard::readBoardFromFile(const std::string &filename)
 {
-    numberOfReads = 0;
-    numberOfWrites = 0;
+    if (board != nullptr) {
+        for (int i = 0; i < numRows; i++) {
+            delete[] board[i];
+        }
+        delete[] board;
+        board = nullptr;
+    }
     std::vector<std::vector<int>> vectorBoard;
     std::string line;
     std::string item;
     std::ifstream fs(filename);
+    if (!fs.good()) return;
     std::istringstream ss;
 
     int columns = -1;
@@ -71,16 +76,14 @@ void numbrix::NumbrixBoard::readPuzzle(std::string filename)
             oss << "Row " << vectorBoard.size()+1 << " has more items than the previous rows. Please correct.";
             throw BadPuzzleFormatException(oss.str());
         }
+        vectorBoard.push_back(row);
     }
     int rows = vectorBoard.size();
 
-    backupBoard = new int*[rows];
     board = new int*[rows];
     for (int i = 0; i < rows; i++) {
-        backupBoard[i] = new int[columns];
         board[i] = new int[columns];
         for (int j = 0; j < columns; j++) {
-            backupBoard[i][j] = vectorBoard[i][j];
             board[i][j] = vectorBoard[i][j];
         }
     }
@@ -89,29 +92,42 @@ void numbrix::NumbrixBoard::readPuzzle(std::string filename)
     numColumns = columns;
 }
 
-void numbrix::NumbrixBoard::resetPuzzle()
+void numbrix::NumbrixBoard::copyBoard(const NumbrixBoard &other)
 {
-    numberOfReads = 0;
-    numberOfWrites = 0;
-    if (board == nullptr || backupBoard == nullptr) return;
-    for (int i = 0; i < numRows; i++) {
-        for (int j = 0; j < numColumns; j++) {
-            board[i][j] = backupBoard[i][j];
+    if (other.board != nullptr) {
+
+
+        if (board != nullptr) {
+            for (int i = 0; i < numRows; i++) {
+                delete[] board[i];
+            }
+            delete[] board;
+        }
+
+        numRows = other.numRows;
+        numColumns = other.numColumns;
+
+        board = new int*[numRows];
+        for (int i = 0; i < numRows; i++) {
+            board[i] = new int[numColumns];
+            for (int j = 0; j < numColumns; j++) {
+                board[i][j] = other.board[i][j];
+            }
         }
     }
 }
 
-int numbrix::NumbrixBoard::getNumberOfReads()
+int numbrix::NumbrixBoard::getNumRows() const
 {
-    return numberOfReads;
+    return numRows;
 }
 
-int numbrix::NumbrixBoard::getNumberOfWrites()
+int numbrix::NumbrixBoard::getNumCols() const
 {
-    return numberOfWrites;
+    return numColumns;
 }
 
-std::string numbrix::NumbrixBoard::toString()
+std::string numbrix::NumbrixBoard::toString() const
 {
     if (board == nullptr) return "";
     std::ostringstream oss;
@@ -130,11 +146,17 @@ std::string numbrix::NumbrixBoard::toString()
                 int padding = numSpaces - number.size();
                 if (padding > 0) {
                     int rightpadding = padding / 2;
-                    oss << std::setw(padding-rightpadding + number.size()) << number;
+                    oss << std::setw(numSpaces-rightpadding) << number;
                     oss << std::setw(rightpadding) << "";
                 }
+                else {
+                    oss << number;
+                }
             }
-            if (j < numColumns-1) oss << " ";
+            if (j < numColumns-1) 
+            {
+                oss << " ";
+            }
         }
         if (i < numRows-1) oss << "\n";
     }

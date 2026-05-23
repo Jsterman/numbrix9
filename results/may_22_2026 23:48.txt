@@ -1,0 +1,40 @@
+This is the puzzle loaded (puzzles/expert_may_17_2026.csv):
+73 __ 77 __ 11 __  9 __  7
+__ __ __ __ __ __ __ __ __
+71 __ __ __ __ __ __ __  3
+__ __ __ __ __ __ __ __ __
+67 __ __ __ __ __ __ __  1
+__ __ __ __ __ __ __ __ __
+65 __ __ __ __ __ __ __ 21
+__ __ __ __ __ __ __ __ __
+63 __ 49 __ 43 __ 27 __ 25
+
+Solving...
+
+Solution Found!
+73 74 77 78 11 10  9  8  7
+72 75 76 79 12 13 14  5  6
+71 70 81 80 35 34 15  4  3
+68 69 56 55 36 33 16 17  2
+67 58 57 54 37 32 31 18  1
+66 59 52 53 38 39 30 19 20
+65 60 51 46 45 40 29 22 21
+64 61 50 47 44 41 28 23 24
+63 62 49 48 43 42 27 26 25
+Duration: 1496.25ms
+Number of reads: 12788204
+Number of writes: 6645641
+
+Averaging the time to solve over 9 additional runs...
+
+Run 2 Complete
+Run 3 Complete
+Run 4 Complete
+Run 5 Complete
+Run 6 Complete
+Run 7 Complete
+Run 8 Complete
+Run 9 Complete
+Run 10 Complete
+
+Average time to solve: 1496.41ms

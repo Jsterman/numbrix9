@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include <stdexcept>
 
@@ -11,23 +12,22 @@ public:
 class NumbrixBoard {
 private:
     int** board = nullptr;
-    int** backupBoard = nullptr;
-    int numberOfReads = 0;
-    int numberOfWrites = 0;
-    int numRows;
-    int numColumns;
+    int numRows = 0;
+    int numColumns = 0;
 public:
     NumbrixBoard();
     NumbrixBoard(std::string filename);
+    NumbrixBoard(const NumbrixBoard&);
     ~NumbrixBoard();
-    int getValue(const int &row, const int &column);
+    int getValue(const int &row, const int &column) const;
     void setValue(const int &row, const int &column, const int &value);
-    void readPuzzle(std::string filename);
-    void resetPuzzle();
-    int getNumberOfReads();
-    int getNumberOfWrites();
+    void readBoardFromFile(const std::string &filename);
+    void copyBoard(const NumbrixBoard &other);
 
-    std::string toString();
+    int getNumRows() const;
+    int getNumCols() const;
+
+    std::string toString() const;
 };
 
 }
