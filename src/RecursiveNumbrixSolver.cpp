@@ -1,4 +1,4 @@
-#include <NumbrixSolver.h>
+#include <RecursiveNumbrixSolver.h>
 
 int numbrix::NumbrixSolver::getValue(const int &row, const int &column)
 {

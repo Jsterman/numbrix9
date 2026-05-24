@@ -29,7 +29,7 @@ numbrix::NumbrixBoard::~NumbrixBoard()
     }
     delete[] board;
 }
-int numbrix::NumbrixBoard::getValue(const int &i, const int &j) const
+int numbrix::NumbrixBoard::getValue(const int &i, const int &j)
 {
     if (board == nullptr) return -1;
     return board[i][j];

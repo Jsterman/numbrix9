@@ -14,7 +14,8 @@ add_library(numbrix_board)
 target_sources(numbrix_board
   PRIVATE
     src/NumbrixBoard.cpp
-    src/NumbrixSolver.cpp
+    src/NumbrixBoardTracking.cpp
+    src/RecursiveNumbrixSolver.cpp
   PUBLIC
     FILE_SET HEADERS
     BASE_DIRS
@@ -22,6 +23,8 @@ target_sources(numbrix_board
     FILES
       include/NumbrixBoard.h
       include/NumbrixSolver.h
+      include/RecursiveNumbrixSolver.h
+      include/NumbrixBoardTracking.h
 )
 
 target_link_libraries(numbrix9

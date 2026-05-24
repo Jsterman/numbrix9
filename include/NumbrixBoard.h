@@ -10,7 +10,7 @@ public:
 };
 
 class NumbrixBoard {
-private:
+protected:
     int** board = nullptr;
     int numRows = 0;
     int numColumns = 0;
@@ -19,8 +19,8 @@ public:
     NumbrixBoard(std::string filename);
     NumbrixBoard(const NumbrixBoard&);
     ~NumbrixBoard();
-    int getValue(const int &row, const int &column) const;
-    void setValue(const int &row, const int &column, const int &value);
+    virtual int getValue(const int &row, const int &column);
+    virtual void setValue(const int &row, const int &column, const int &value);
     void readBoardFromFile(const std::string &filename);
     void copyBoard(const NumbrixBoard &other);
 

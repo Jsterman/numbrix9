@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     std::cout << "This is the puzzle loaded (" << filename << "):" << std::endl;
     std::cout << board.toString() << std::endl<< std::endl;
 
-    std::cout << "Solving..." << std::endl << std::endl;
+    std::cout << "Solving Recursively..." << std::endl << std::endl;
     NumbrixSolver solver(board);
     auto t1 = high_resolution_clock::now();
     bool solutionFound = solver.solveRecursively();
