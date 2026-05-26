@@ -1,9 +1,13 @@
 #include "NumbrixBoardTracking.h"
 
+numbrix::NumbrixBoardTracking::NumbrixBoardTracking(std::string filename) : NumbrixBoard(filename)
+{
+}
+
 int numbrix::NumbrixBoardTracking::getValue(const int &row, const int &column)
 {
     numberOfReads++;
-    NumbrixBoard::getValue(row, column);
+    return NumbrixBoard::getValue(row, column);
 }
 
 void numbrix::NumbrixBoardTracking::setValue(const int &row, const int &column, const int &value)
@@ -20,4 +24,10 @@ int numbrix::NumbrixBoardTracking::getNumberOfReads() const
 int numbrix::NumbrixBoardTracking::getNumberOfWrites() const
 {
     return numberOfWrites;
+}
+
+void numbrix::NumbrixBoardTracking::resetTracking()
+{
+    numberOfReads = 0;
+    numberOfWrites = 0;
 }

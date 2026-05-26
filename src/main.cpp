@@ -1,4 +1,5 @@
-#include <NumbrixSolver.h>
+#include <RecursiveNumbrixSolver.h>
+#include <NumbrixBoardTracking.h>
 #include <iostream>
 #include <chrono>
 
@@ -11,30 +12,32 @@ int main(int argc, char *argv[]) {
     if (argc > 1) {
         filename = std::string(argv[1]);
     }
-    NumbrixBoard board(filename);
+    NumbrixBoardTracking* originalBoard = new NumbrixBoardTracking(filename);
+    NumbrixBoardTracking* board = new NumbrixBoardTracking(*originalBoard);
     std::cout << "This is the puzzle loaded (" << filename << "):" << std::endl;
-    std::cout << board.toString() << std::endl<< std::endl;
+    std::cout << board->toString() << std::endl<< std::endl;
 
     std::cout << "Solving Recursively..." << std::endl << std::endl;
-    NumbrixSolver solver(board);
+    RecursiveNumbrixSolver solver;
     auto t1 = high_resolution_clock::now();
-    bool solutionFound = solver.solveRecursively();
+    bool solutionFound = solver.solve(board);
     auto t2 = high_resolution_clock::now();
     duration<double, std::milli> ms = t2-t1;
     if (solutionFound) {
-        std::cout << "Solution Found!\n" << solver.getBoard() << std::endl;
+        std::cout << "Solution Found!\n" << board->toString() << std::endl;
         std::cout << "Duration: " << ms.count() << "ms\n";
-        std::cout << "Number of reads: " << solver.getNumberOfReads() << std::endl;
-        std::cout << "Number of writes: " << solver.getNumberOfWrites() << std::endl << std::endl;
+        std::cout << "Number of reads: " << board->getNumberOfReads() << std::endl;
+        std::cout << "Number of writes: " << board->getNumberOfWrites() << std::endl << std::endl;
 
         double runningTotal = ms.count();
 
         std::cout << "Averaging the time to solve over 9 additional runs..." << std::endl << std::endl;
 
         for (int i = 0; i < 9; i++) {
-            solver.resetBoard();
+            board->resetTracking();
+            board->copyBoard(*originalBoard);
             auto t1 = high_resolution_clock::now();
-            bool solutionFound = solver.solveRecursively();
+            bool solutionFound = solver.solve(board);
             auto t2 = high_resolution_clock::now();
             duration<double, std::milli> ms = t2-t1;
             runningTotal += ms.count();

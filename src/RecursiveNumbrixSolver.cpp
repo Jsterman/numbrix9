@@ -1,38 +1,26 @@
 #include <RecursiveNumbrixSolver.h>
 
-int numbrix::NumbrixSolver::getValue(const int &row, const int &column)
-{
-    numberOfReads++;
-    return board.getValue(row, column);
-}
-
-void numbrix::NumbrixSolver::setValue(const int &row, const int &column, const int &value)
-{
-    numberOfWrites++;
-    board.setValue(row, column, value);
-}
-
-bool numbrix::NumbrixSolver::hasValue(const int &value) const
+bool numbrix::RecursiveNumbrixSolver::hasValue(const int &value) const
 {
     auto iter = valuesInBoard.find(value);
     return iter != valuesInBoard.end();
 }
 
-bool numbrix::NumbrixSolver::decendingRecSolver(const int &i, const int &j, const int &value)
+bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int &j, const int &value)
 {
     if (i < 0 || i >= numRows || j < 0 || j >= numCols) return false;
 
-    int currentResident = getValue(i, j);
+    int currentResident = board->getValue(i, j);
     if (currentResident != 0 && currentResident != value) return false;
 
     if (currentResident == 0) {
-        setValue(i, j, value);
+        board->setValue(i, j, value);
     }
 
     if (value == 1) {
         if (!accendingRecSolver(i, j, value)) {
             if (currentResident == 0) {
-                setValue(i, j, currentResident);
+                board->setValue(i, j, currentResident);
             }
             return false;
         }
@@ -44,7 +32,7 @@ bool numbrix::NumbrixSolver::decendingRecSolver(const int &i, const int &j, cons
         }
         else {
             if (currentResident == 0) {
-                setValue(i, j, currentResident);
+                board->setValue(i, j, currentResident);
             }
             return false;
         }
@@ -52,17 +40,17 @@ bool numbrix::NumbrixSolver::decendingRecSolver(const int &i, const int &j, cons
 
 }
 
-bool numbrix::NumbrixSolver::accendingRecSolver(const int &i, const int &j, const int &value)
+bool numbrix::RecursiveNumbrixSolver::accendingRecSolver(const int &i, const int &j, const int &value)
 {
     if (i < 0 || i >= numRows || j < 0 || j >= numCols) return false;
 
-    int currentValue = getValue(i, j);
+    int currentValue = board->getValue(i, j);
     if (currentValue != 0 && currentValue != value) return false;
 
     if (currentValue == 0) {
         if (hasValue(value)) return false;
 
-        setValue(i, j, value);
+        board->setValue(i, j, value);
         valuesInBoard.insert(value);
     }
 
@@ -76,29 +64,29 @@ bool numbrix::NumbrixSolver::accendingRecSolver(const int &i, const int &j, cons
     }
     else {
         if (currentValue == 0) {
-            setValue(i, j, currentValue);
+            board->setValue(i, j, currentValue);
             valuesInBoard.erase(valuesInBoard.find(value));
         }
         return false;
     }
 }
 
-numbrix::NumbrixSolver::NumbrixSolver(const NumbrixBoard &board) : originalBoard(board), board(board)
+numbrix::RecursiveNumbrixSolver::RecursiveNumbrixSolver()
 {
-    numRows = board.getNumRows();
-    numCols = board.getNumCols();
 }
 
-bool numbrix::NumbrixSolver::solveRecursively()
+bool numbrix::RecursiveNumbrixSolver::solve(NumbrixBoard *board)
 {
+    this->board = board;
+    numRows = board->getNumRows();
+    numCols = board->getNumCols();
     int minValue = numRows * numCols;
     maxValue = minValue;
     int x = 0;
     int y = 0;
     for (int i = 0; i < numRows; i++) {
         for (int j = 0; j < numCols; j++) {
-            numberOfReads++;
-            int value = board.getValue(i, j);
+            int value = board->getValue(i, j);
             if (value != 0) {
                 if (value < minValue) {
                     minValue = value;
@@ -115,27 +103,4 @@ bool numbrix::NumbrixSolver::solveRecursively()
     else {
         return decendingRecSolver(x, y, minValue);
     }
-}
-
-int numbrix::NumbrixSolver::getNumberOfReads()
-{
-    return numberOfReads;
-}
-
-int numbrix::NumbrixSolver::getNumberOfWrites()
-{
-    return numberOfWrites;
-}
-
-void numbrix::NumbrixSolver::resetBoard()
-{
-    board.copyBoard(originalBoard);
-    numberOfReads = 0;
-    numberOfWrites = 0;
-    valuesInBoard.clear();
-}
-
-std::string numbrix::NumbrixSolver::getBoard()
-{
-    return board.toString();
 }
