@@ -16,6 +16,7 @@ target_sources(numbrix_board
     src/NumbrixBoard.cpp
     src/NumbrixBoardTracking.cpp
     src/RecursiveNumbrixSolver.cpp
+    src/HybridNumbrixSolver.cpp
   PUBLIC
     FILE_SET HEADERS
     BASE_DIRS
@@ -25,6 +26,7 @@ target_sources(numbrix_board
       include/NumbrixSolver.h
       include/RecursiveNumbrixSolver.h
       include/NumbrixBoardTracking.h
+      include/HybridNumbrixSolver.h
 )
 
 target_link_libraries(numbrix9

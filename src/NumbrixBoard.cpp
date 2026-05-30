@@ -95,23 +95,30 @@ void numbrix::NumbrixBoard::readBoardFromFile(const std::string &filename)
 void numbrix::NumbrixBoard::copyBoard(const NumbrixBoard &other)
 {
     if (other.board != nullptr) {
-
-
-        if (board != nullptr) {
+        if (numRows == other.numRows && numColumns == other.numColumns) {
             for (int i = 0; i < numRows; i++) {
-                delete[] board[i];
+                for (int j = 0; j < numColumns; j++) {
+                    board[i][j] = other.board[i][j];
+                }
             }
-            delete[] board;
         }
+        else {
+            if (board != nullptr) {
+                for (int i = 0; i < numRows; i++) {
+                    delete[] board[i];
+                }
+                delete[] board;
+            }
 
-        numRows = other.numRows;
-        numColumns = other.numColumns;
+            numRows = other.numRows;
+            numColumns = other.numColumns;
 
-        board = new int*[numRows];
-        for (int i = 0; i < numRows; i++) {
-            board[i] = new int[numColumns];
-            for (int j = 0; j < numColumns; j++) {
-                board[i][j] = other.board[i][j];
+            board = new int*[numRows];
+            for (int i = 0; i < numRows; i++) {
+                board[i] = new int[numColumns];
+                for (int j = 0; j < numColumns; j++) {
+                    board[i][j] = other.board[i][j];
+                }
             }
         }
     }

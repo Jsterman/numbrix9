@@ -1,3 +1,4 @@
+#include <HybridNumbrixSolver.h>
 #include <RecursiveNumbrixSolver.h>
 #include <NumbrixBoardTracking.h>
 #include <iostream>
@@ -8,7 +9,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 
 int main(int argc, char *argv[]) {
-    std::string filename = "puzzles/simple_4x4.csv";
+    std::string filename = "puzzles/easy_may_19_2026.csv";
     if (argc > 1) {
         filename = std::string(argv[1]);
     }
@@ -18,7 +19,7 @@ int main(int argc, char *argv[]) {
     std::cout << board->toString() << std::endl<< std::endl;
 
     std::cout << "Solving Recursively..." << std::endl << std::endl;
-    RecursiveNumbrixSolver solver;
+    HybridNumbrixSolver solver;
     auto t1 = high_resolution_clock::now();
     bool solutionFound = solver.solve(board);
     auto t2 = high_resolution_clock::now();

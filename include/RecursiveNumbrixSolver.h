@@ -7,7 +7,7 @@
 namespace numbrix {
 
 class RecursiveNumbrixSolver: public NumbrixSolver {
-private:
+protected:
     int numRows;
     int numCols;
     int maxValue;
@@ -18,7 +18,7 @@ private:
     bool accendingRecSolver(const int &row, const int &column, const int &value);
 public:
     RecursiveNumbrixSolver();
-    bool solve(NumbrixBoard* board);
+    virtual bool solve(NumbrixBoard* board);
 };
 
 }

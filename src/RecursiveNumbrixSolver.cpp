@@ -97,10 +97,14 @@ bool numbrix::RecursiveNumbrixSolver::solve(NumbrixBoard *board)
             }
         }
     }
+    bool result;
     if (minValue == 1) {
-        return accendingRecSolver(x, y, minValue);
+        result = accendingRecSolver(x, y, minValue);
     }
     else {
-        return decendingRecSolver(x, y, minValue);
+        result = decendingRecSolver(x, y, minValue);
     }
+    maxValue = 0;
+    valuesInBoard.clear();
+    return result;
 }
