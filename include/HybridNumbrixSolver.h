@@ -11,6 +11,7 @@ protected:
     std::unordered_set<int> negative;
     bool checkPositive();
     bool checkNegative();
+    bool checkDirection(bool pos);
     void insertValue(const int &i, const int &j, const int &value);
     bool empty(int i, int j);
 public:
