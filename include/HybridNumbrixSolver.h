@@ -12,8 +12,10 @@ protected:
     bool checkPositive();
     bool checkNegative();
     bool checkDirection(bool pos);
+    bool checkNeighbors(const int &valueAcrossFromInitial, const int &valueAccrossFromTwoAhead);
     void insertValue(const int &i, const int &j, const int &value);
-    bool empty(int i, int j);
+    bool empty(const int &i, const int &j);
+    bool hasEmptyNeighbor(const int &i, const int &j);
 public:
     virtual bool solve(NumbrixBoard *board);
 };
