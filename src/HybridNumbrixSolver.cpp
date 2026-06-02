@@ -66,77 +66,79 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                     }
                     foundSpot = true;
                 }
+                else {
 
-                // check if either are valid paths for one of the other neighbors to take. If one has no other valid path going through it, 
+                    // check if either are valid paths for one of the other neighbors to take. If one has no other valid path going through it, 
 
-                int valueOppositeInitial;
-                int valueOppositeTwoAhead;
-                // get the column number of the cell on the same row as this value
-                int sameRowCol;
-                if (j < oj) {
-                    sameRowCol = j+2;
-                }
-                else {
-                    sameRowCol = j-2;
-                }
-                // get the row number of the cell on the same column as twoAfter
-                int sameColRow;
-                if (oi > i) {
-                    sameColRow = oi-2;
-                }
-                else {
-                    sameColRow = oi+2;
-                }
-                if (sameRowCol < 0 || sameRowCol >= numCols) {
-                    valueOppositeInitial = -1;
-                }
-                else {
-                    valueOppositeInitial = board->getValue(i, sameRowCol);
-                }
-                if (sameColRow < 0 || sameColRow >= numRows) {
-                    valueOppositeTwoAhead = -1;
-                }
-                else {
-                    valueOppositeTwoAhead = board->getValue(sameColRow, oj);
-                }
-                if (checkNeighbors(valueOppositeInitial, valueOppositeTwoAhead)) {
-                    foundSpot = true;
-                    nexti = (sameColRow + i)/2;
-                    nextj = (sameRowCol + oj)/2;
-                }
-                else {
-                    // now we do the same checks for the other side
-                    if (i < oi) {
-                        sameColRow = i+2;
+                    int valueOppositeInitial;
+                    int valueOppositeTwoAhead;
+                    // get the column number of the cell on the same row as this value
+                    int sameRowCol;
+                    if (j < oj) {
+                        sameRowCol = j+2;
                     }
                     else {
-                        sameColRow = i-2;
+                        sameRowCol = j-2;
                     }
-                    if (oj > j) {
-                        sameRowCol = oj-2;
+                    // get the row number of the cell on the same column as twoAfter
+                    int sameColRow;
+                    if (oi > i) {
+                        sameColRow = oi-2;
                     }
                     else {
-                        sameRowCol = oj+2;
+                        sameColRow = oi+2;
                     }
-
                     if (sameRowCol < 0 || sameRowCol >= numCols) {
-                        valueOppositeTwoAhead = -1;
-                    }
-                    else {
-                        valueOppositeTwoAhead = board->getValue(oi, sameRowCol);
-                    }
-
-                    if (sameColRow < 0 || sameColRow >= numRows) {
                         valueOppositeInitial = -1;
                     }
                     else {
-                        valueOppositeInitial = board->getValue(sameColRow, j);
+                        valueOppositeInitial = board->getValue(i, sameRowCol);
                     }
-
-                    if (checkNeighbors(valueOppositeInitial, valueOppositeTwoAhead)) {
+                    if (sameColRow < 0 || sameColRow >= numRows) {
+                        valueOppositeTwoAhead = -1;
+                    }
+                    else {
+                        valueOppositeTwoAhead = board->getValue(sameColRow, oj);
+                    }
+                    if (checkNoOtherValidPath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
                         foundSpot = true;
                         nexti = (sameColRow + oi)/2;
                         nextj = (sameRowCol + j)/2;
+                    }
+                    else {
+                        // now we do the same checks for the other side
+                        if (i < oi) {
+                            sameColRow = i+2;
+                        }
+                        else {
+                            sameColRow = i-2;
+                        }
+                        if (oj > j) {
+                            sameRowCol = oj-2;
+                        }
+                        else {
+                            sameRowCol = oj+2;
+                        }
+
+                        if (sameRowCol < 0 || sameRowCol >= numCols) {
+                            valueOppositeTwoAhead = -1;
+                        }
+                        else {
+                            valueOppositeTwoAhead = board->getValue(oi, sameRowCol);
+                        }
+
+                        if (sameColRow < 0 || sameColRow >= numRows) {
+                            valueOppositeInitial = -1;
+                        }
+                        else {
+                            valueOppositeInitial = board->getValue(sameColRow, j);
+                        }
+
+                        if (checkNoOtherValidPath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
+                            foundSpot = true;
+                            nexti = (sameColRow + i)/2;
+                            nextj = (sameRowCol + oj)/2;
+                        }
                     }
                 }
             }
@@ -190,30 +192,39 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
     return changed;
 }
 
-bool numbrix::HybridNumbrixSolver::checkNeighbors(const int &valueOppositeInitial, const int &valueOppositeTwoAhead)
+bool numbrix::HybridNumbrixSolver::checkNoOtherValidPath(const int &thisValue, const int& twoAfter, const int &valueOppositeInitial, const int &valueOppositeTwoAhead)
 {
-    if (valueOppositeInitial == -1) { // this location is a wall
-        // if the other location is a wall or has a number that does not allow it to path through the cell (i.e. 2 or maxValue-1, which would allow 1 or maxValue, respectively, to be placed in the cell)
-        if (valueOppositeTwoAhead == -1 || (valueOppositeTwoAhead > 0 && valueOppositeTwoAhead != maxValue-1 && valueOppositeTwoAhead != 2)) {
-            // choosing the other path will result in this cell being left empty, which is not valid, so we must choose this cell to put the next value into
-            return true;
+    if (valueOppositeInitial == 0 || valueOppositeTwoAhead == 0){ // If either cell is open, all bets are off
+        return false; 
+    }
+    // Check all possible routes through this cell. If one of the other routes are valid, the route between thisValue and twoAhead is not guaranteed to pass through this cell and we return false
+    if (valueOppositeInitial != -1) { // if valueOppositeInitial is a wall, we can skip all these checks as you can't route into a wall
+        if (valueOppositeTwoAhead != -1 && abs(valueOppositeInitial - valueOppositeTwoAhead) == 2 && !hasValue((valueOppositeInitial + valueOppositeTwoAhead)/2)) { // if these two values are two apart and the value between them is not on the board, it is possible they route through this cell
+            return false;
+        }
+        else if (abs(valueOppositeInitial - thisValue) == 2 && !hasValue((valueOppositeInitial + thisValue)/2)) {
+            return false;
+        }
+        else if (abs(valueOppositeInitial - twoAfter) == 2 && !hasValue((valueOppositeInitial + twoAfter)/2)) {
+            return false;
         }
     }
-    else if (valueOppositeTwoAhead == -1) { // this location is a wall
-        // essentially the same check as the previous one. We can skip the case that the other side is a wall since that would've been caught in the previous check
-        if (valueOppositeInitial > 0 && valueOppositeInitial != maxValue-1 && valueOppositeInitial != 2) {
-            return true;
+    else if (valueOppositeTwoAhead == maxValue-1 || valueOppositeTwoAhead == 2) { // if valueOppositeInitial is a wall and the other value is maxValue-1 or 2, maxValue or 1 could path into this cell.
+        return false;
+    }
+
+    if (valueOppositeTwoAhead != -1) { // if valueOppositeTwoAhead is a wall, we can skip all these checks as you can't route into a wall
+        if (abs(valueOppositeTwoAhead - thisValue) == 2 && !hasValue((valueOppositeTwoAhead + thisValue)/2)) {
+            return false;
+        }
+        else if (abs(valueOppositeTwoAhead - twoAfter) == 2 && !hasValue((valueOppositeTwoAhead + twoAfter)/2)) {
+            return false;
         }
     }
-    else if (valueOppositeInitial > 0 && valueOppositeTwoAhead > 0) { // both have a value
-        if (abs(valueOppositeInitial - valueOppositeTwoAhead) != 2) { // if they aren't two apart, then they can't path through this cell
-            return true;
-        }
-        else if (hasValue((valueOppositeInitial + valueOppositeTwoAhead)/2)) { // they are two apart, but the path between them is already on the board, so leaving this cell open would make the puzzle invalid
-            return true;
-        }
+    else if (valueOppositeInitial == maxValue-1 || valueOppositeInitial == 2) { // if valueOppositeTwoAhead is a wall and the other value is maxValue-1 or 2, maxValue or 1 could path into this cell.
+        return false;
     }
-    return false;
+    return true;
 }
 
 void numbrix::HybridNumbrixSolver::insertValue(const int &i, const int &j, const int &value)
