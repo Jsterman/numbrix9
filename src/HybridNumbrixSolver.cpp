@@ -147,6 +147,7 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                 otherList->erase(otherList->find(twoAfter));
                 it = thisList->erase(it);
                 changed = true;
+                // std::cout << "Current Board:" << std::endl << board->toString() << std::endl << std::endl;
                 continue;
             }
 
@@ -170,6 +171,22 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                 count++;
                 right = true;
             }
+            if (count > 1 && up && !isValidPath(i-1, j, nextValue, 2)) {
+                count--;
+                up = false;
+            }
+            if (count > 1 && down && !isValidPath(i+1, j, nextValue, 0)) {
+                count--;
+                down = false;
+            }
+            if (count > 1 && left && !isValidPath(i, j-1, nextValue, 1)) {
+                count--;
+                left = false;
+            }
+            if (count > 1 && right && !isValidPath(i, j+1, nextValue, 3)) {
+                count--;
+                right = false;
+            }
             if (count == 1) {
                 int nexti = i;
                 int nextj = j;
@@ -183,6 +200,7 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                 thisList->insert(nextValue);
                 it = thisList->erase(it);
                 changed = true;
+                // std::cout << "Current Board:" << std::endl << board->toString() << std::endl << std::endl;
                 continue;
             }
         }
@@ -226,8 +244,37 @@ bool numbrix::HybridNumbrixSolver::hasOtherPossiblePath(const int &thisValue, co
     return false;
 }
 
-bool numbrix::HybridNumbrixSolver::isValidPath(const int &thisValue, const int &nextValue, const int &twoAfter, const int &valueOppositeInitial, const int &valueOppositeTwoAhead)
+bool numbrix::HybridNumbrixSolver::isValidPath(const int &i, const int &j, const int &value, const int &from)
 {
+    // If we didn't come from the top, check if the path can go through the cell above
+    if (from != 0) {
+        int upVal = (i-1 < 0) ? -1 : board->getValue(i-1, j);
+        if (upVal == 0 || abs(value - upVal) == 1) {
+            return true;
+        }
+    }
+    // If we didn't come from the right, check if the path can go through the cell to the right
+    if (from != 1) {
+        int rightVal = (j+1 >= numCols) ? -1 : board->getValue(i, j+1);
+        if (rightVal == 0 || abs(value-rightVal) == 1) {
+            return true;
+        }
+    }
+    // If we didn't come from the bottom, check if the path can go through the cell below
+    if (from != 2) {
+        int downVal = (i+1 >= numRows) ? -1 : board->getValue(i+1, j);
+        if (downVal == 0 || abs(value-downVal) == 1) {
+            return true;
+        }
+    }
+    // if we didn't come from the left, check if the path can go through the cell to the left
+    if (from != 3) {
+        int leftVal = (j-1 < 0) ? -1 : board->getValue(i, j-1);
+        if (leftVal == 0 || abs(value-leftVal) == 1) {
+            return true;
+        } 
+    }
+
     return false;
 }
 
