@@ -100,7 +100,7 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                     else {
                         valueOppositeTwoAhead = board->getValue(sameColRow, oj);
                     }
-                    if (checkNoOtherValidPath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
+                    if (!hasOtherPossiblePath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
                         foundSpot = true;
                         nexti = (sameColRow + oi)/2;
                         nextj = (sameRowCol + j)/2;
@@ -133,8 +133,7 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                         else {
                             valueOppositeInitial = board->getValue(sameColRow, j);
                         }
-
-                        if (checkNoOtherValidPath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
+                        if (!hasOtherPossiblePath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
                             foundSpot = true;
                             nexti = (sameColRow + i)/2;
                             nextj = (sameRowCol + oj)/2;
@@ -192,39 +191,44 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
     return changed;
 }
 
-bool numbrix::HybridNumbrixSolver::checkNoOtherValidPath(const int &thisValue, const int& twoAfter, const int &valueOppositeInitial, const int &valueOppositeTwoAhead)
+bool numbrix::HybridNumbrixSolver::hasOtherPossiblePath(const int &thisValue, const int& twoAfter, const int &valueOppositeInitial, const int &valueOppositeTwoAhead)
 {
     if (valueOppositeInitial == 0 || valueOppositeTwoAhead == 0){ // If either cell is open, all bets are off
-        return false; 
+        return true; 
     }
     // Check all possible routes through this cell. If one of the other routes are valid, the route between thisValue and twoAhead is not guaranteed to pass through this cell and we return false
     if (valueOppositeInitial != -1) { // if valueOppositeInitial is a wall, we can skip all these checks as you can't route into a wall
         if (valueOppositeTwoAhead != -1 && abs(valueOppositeInitial - valueOppositeTwoAhead) == 2 && !hasValue((valueOppositeInitial + valueOppositeTwoAhead)/2)) { // if these two values are two apart and the value between them is not on the board, it is possible they route through this cell
-            return false;
+            return true;
         }
         else if (abs(valueOppositeInitial - thisValue) == 2 && !hasValue((valueOppositeInitial + thisValue)/2)) {
-            return false;
+            return true;
         }
         else if (abs(valueOppositeInitial - twoAfter) == 2 && !hasValue((valueOppositeInitial + twoAfter)/2)) {
-            return false;
+            return true;
         }
     }
     else if (valueOppositeTwoAhead == maxValue-1 || valueOppositeTwoAhead == 2) { // if valueOppositeInitial is a wall and the other value is maxValue-1 or 2, maxValue or 1 could path into this cell.
-        return false;
+        return true;
     }
 
     if (valueOppositeTwoAhead != -1) { // if valueOppositeTwoAhead is a wall, we can skip all these checks as you can't route into a wall
         if (abs(valueOppositeTwoAhead - thisValue) == 2 && !hasValue((valueOppositeTwoAhead + thisValue)/2)) {
-            return false;
+            return true;
         }
         else if (abs(valueOppositeTwoAhead - twoAfter) == 2 && !hasValue((valueOppositeTwoAhead + twoAfter)/2)) {
-            return false;
+            return true;
         }
     }
     else if (valueOppositeInitial == maxValue-1 || valueOppositeInitial == 2) { // if valueOppositeTwoAhead is a wall and the other value is maxValue-1 or 2, maxValue or 1 could path into this cell.
-        return false;
+        return true;
     }
-    return true;
+    return false;
+}
+
+bool numbrix::HybridNumbrixSolver::isValidPath(const int &thisValue, const int &nextValue, const int &twoAfter, const int &valueOppositeInitial, const int &valueOppositeTwoAhead)
+{
+    return false;
 }
 
 void numbrix::HybridNumbrixSolver::insertValue(const int &i, const int &j, const int &value)

@@ -12,7 +12,8 @@ protected:
     bool checkPositive();
     bool checkNegative();
     bool checkDirection(bool pos);
-    bool checkNoOtherValidPath(const int &thisValue, const int& twoAfter, const int &valueAcrossFromInitial, const int &valueAccrossFromTwoAhead);
+    bool hasOtherPossiblePath(const int &thisValue, const int& twoAfter, const int &valueAcrossFromInitial, const int &valueAcrossFromTwoAhead);
+    bool isValidPath(const int &thisValue, const int &nextValue, const int &twoAfter, const int &valueAcrossFromInitial, const int &valueAcrossFromTwoAhead);
     void insertValue(const int &i, const int &j, const int &value);
     bool empty(const int &i, const int &j);
     bool hasEmptyNeighbor(const int &i, const int &j);
