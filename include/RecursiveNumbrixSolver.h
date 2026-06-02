@@ -14,8 +14,8 @@ protected:
     NumbrixBoard *board;
     std::unordered_set<int> valuesInBoard;
     bool hasValue(const int &value) const;
-    bool decendingRecSolver(const int &row, const int &column, const int &value);
-    bool accendingRecSolver(const int &row, const int &column, const int &value);
+    bool decendingRecSolver(const int &row, const int &column, const int &value, const int &from);
+    bool accendingRecSolver(const int &row, const int &column, const int &value, const int &from);
 public:
     RecursiveNumbrixSolver();
     virtual bool solve(NumbrixBoard* board);

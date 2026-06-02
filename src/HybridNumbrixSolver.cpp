@@ -336,10 +336,10 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
 
     bool result;
     if (minValue == 1) {
-        result = accendingRecSolver(x, y, minValue);
+        result = accendingRecSolver(x, y, minValue, -1);
     }
     else {
-        result = decendingRecSolver(x, y, minValue);
+        result = decendingRecSolver(x, y, minValue, -1);
     }
     maxValue = 0;
     valuesInBoard.clear();

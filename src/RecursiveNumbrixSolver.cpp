@@ -6,7 +6,7 @@ bool numbrix::RecursiveNumbrixSolver::hasValue(const int &value) const
     return iter != valuesInBoard.end();
 }
 
-bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int &j, const int &value)
+bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int &j, const int &value, const int &from)
 {
     if (i < 0 || i >= numRows || j < 0 || j >= numCols) return false;
 
@@ -18,7 +18,7 @@ bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int
     }
 
     if (value == 1) {
-        if (!accendingRecSolver(i, j, value)) {
+        if (!accendingRecSolver(i, j, value, -1)) {
             if (currentResident == 0) {
                 board->setValue(i, j, currentResident);
             }
@@ -27,7 +27,16 @@ bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int
         return true;
     }
     else {
-        if (decendingRecSolver(i-1, j, value-1) || decendingRecSolver(i+1, j, value-1) || decendingRecSolver(i, j-1, value-1) || decendingRecSolver(i, j+1, value-1)) {
+        if (from != 0 && decendingRecSolver(i-1, j, value-1, 2)) {
+            return true;
+        }
+        else if (from != 2 && decendingRecSolver(i+1, j, value-1, 0)) {
+            return true;
+        }
+        else if (from != 3 && decendingRecSolver(i, j-1, value-1, 1)) {
+            return true;
+        }
+        else if (from != 1 && decendingRecSolver(i, j+1, value-1, 3)) {
             return true;
         }
         else {
@@ -40,7 +49,7 @@ bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int
 
 }
 
-bool numbrix::RecursiveNumbrixSolver::accendingRecSolver(const int &i, const int &j, const int &value)
+bool numbrix::RecursiveNumbrixSolver::accendingRecSolver(const int &i, const int &j, const int &value, const int &from)
 {
     if (i < 0 || i >= numRows || j < 0 || j >= numCols) return false;
 
@@ -59,7 +68,16 @@ bool numbrix::RecursiveNumbrixSolver::accendingRecSolver(const int &i, const int
     // bool hasNeighbor = false;
     // bool lookForward = false;
 
-    if (accendingRecSolver(i-1, j, value+1) || accendingRecSolver(i+1, j, value+1) || accendingRecSolver(i, j-1, value+1) || accendingRecSolver(i, j+1, value+1)) {
+    if (from != 0 && accendingRecSolver(i-1, j, value+1, 2)) {
+        return true;
+    }
+    else if (from != 2 && accendingRecSolver(i+1, j, value+1, 0)) {
+        return true;
+    }
+    else if (from != 3 && accendingRecSolver(i, j-1, value+1, 1)) {
+        return true;
+    }
+    else if (from != 1 && accendingRecSolver(i, j+1, value+1, 3)) {
         return true;
     }
     else {
@@ -99,10 +117,10 @@ bool numbrix::RecursiveNumbrixSolver::solve(NumbrixBoard *board)
     }
     bool result;
     if (minValue == 1) {
-        result = accendingRecSolver(x, y, minValue);
+        result = accendingRecSolver(x, y, minValue, -1);
     }
     else {
-        result = decendingRecSolver(x, y, minValue);
+        result = decendingRecSolver(x, y, minValue, -1);
     }
     maxValue = 0;
     valuesInBoard.clear();
