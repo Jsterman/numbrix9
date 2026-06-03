@@ -1,7 +1,12 @@
 #include <HybridNumbrixSolver.h>
 #include <iostream>
+#include <vector>
 
-
+bool numbrix::HybridNumbrixSolver::hasValue(const int &value) const
+{
+    auto iter = valuesInBoard.find(value);
+    return iter != valuesInBoard.end();
+}
 
 bool numbrix::HybridNumbrixSolver::checkPositive()
 {
@@ -298,6 +303,11 @@ bool numbrix::HybridNumbrixSolver::hasEmptyNeighbor(const int &i, const int &j)
     return (empty(i-1, j) || empty(i+1, j) || empty(i, j-1) || empty(i, j+2)); // compiler should optimize this so it returns true at the first empty cell
 }
 
+bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, const int &target)
+{
+    return false;
+}
+
 bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
 {
     this->board = board;
@@ -334,17 +344,22 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
 
     std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
 
-    bool result;
-    if (minValue == 1) {
-        result = accendingRecSolver(x, y, minValue, -1);
-    }
-    else {
-        result = decendingRecSolver(x, y, minValue, -1);
+    std::vector<std::tuple<int,int>> segments;
+    for (auto item : positive) {
+        int i;
+        for (i = item+1; i < maxValue; i++) {
+            if (hasValue(i)) {
+                break;
+            }
+        }
+        segments.push_back({item, i});
+        
     }
     maxValue = 0;
     valuesInBoard.clear();
     positive.clear();
     negative.clear();
     locations.clear();
-    return result;
+    while (!segmentQueue.empty()) segmentQueue.pop();
+    return false;
 }

@@ -1,14 +1,23 @@
 #pragma once
 #include <unordered_map>
+#include <unordered_set>
+#include <queue>
 #include <RecursiveNumbrixSolver.h>
 
 namespace numbrix {
 
-class HybridNumbrixSolver : public RecursiveNumbrixSolver {
+class HybridNumbrixSolver : public NumbrixSolver {
 protected:
+    int numRows;
+    int numCols;
+    int maxValue;
+    NumbrixBoard *board;
+    std::unordered_set<int> valuesInBoard;
     std::unordered_map<int, std::tuple<int, int>> locations;
     std::unordered_set<int> positive;
     std::unordered_set<int> negative;
+    std::queue<std::tuple<int, int>> segmentQueue;
+    bool hasValue(const int &value) const;
     bool checkPositive();
     bool checkNegative();
     bool checkDirection(bool pos);
@@ -17,6 +26,7 @@ protected:
     void insertValue(const int &i, const int &j, const int &value);
     bool empty(const int &i, const int &j);
     bool hasEmptyNeighbor(const int &i, const int &j);
+    bool solveSegment(const int &i, const int &j, const int& target);
 public:
     virtual bool solve(NumbrixBoard *board);
 };
