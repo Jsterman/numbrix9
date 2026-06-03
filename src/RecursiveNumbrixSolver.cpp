@@ -51,8 +51,6 @@ bool numbrix::RecursiveNumbrixSolver::decendingRecSolver(const int &i, const int
 
 bool numbrix::RecursiveNumbrixSolver::accendingRecSolver(const int &i, const int &j, const int &value, const int &from)
 {
-    if (i < 0 || i >= numRows || j < 0 || j >= numCols) return false;
-
     int currentValue = board->getValue(i, j);
     if (currentValue != 0 && currentValue != value) return false;
 
@@ -65,19 +63,16 @@ bool numbrix::RecursiveNumbrixSolver::accendingRecSolver(const int &i, const int
 
     if (value == maxValue) return true;
 
-    // bool hasNeighbor = false;
-    // bool lookForward = false;
-
-    if (from != 0 && accendingRecSolver(i-1, j, value+1, 2)) {
+    if (from != 0 && i-1 >= 0 && accendingRecSolver(i-1, j, value+1, 2)) {
         return true;
     }
-    else if (from != 2 && accendingRecSolver(i+1, j, value+1, 0)) {
+    else if (from != 2 && i+1 < numRows && accendingRecSolver(i+1, j, value+1, 0)) {
         return true;
     }
-    else if (from != 3 && accendingRecSolver(i, j-1, value+1, 1)) {
+    else if (from != 3 && j-1 >= 0 && accendingRecSolver(i, j-1, value+1, 1)) {
         return true;
     }
-    else if (from != 1 && accendingRecSolver(i, j+1, value+1, 3)) {
+    else if (from != 1 && j+1 < numCols && accendingRecSolver(i, j+1, value+1, 3)) {
         return true;
     }
     else {
