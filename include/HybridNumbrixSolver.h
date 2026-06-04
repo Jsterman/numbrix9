@@ -22,7 +22,7 @@ protected:
     bool checkNegative();
     bool checkDirection(bool pos);
     bool hasOtherPossiblePath(const int &thisValue, const int& twoAfter, const int &valueAcrossFromInitial, const int &valueAcrossFromTwoAhead);
-    bool isValidPath(const int &row, const int &column, const int &value, const int &from);
+    bool isValidPath(const int &row, const int &column, const int &value, const Direction &from);
     void insertValue(const int &i, const int &j, const int &value);
     bool empty(const int &i, const int &j);
     bool hasEmptyNeighbor(const int &i, const int &j);
