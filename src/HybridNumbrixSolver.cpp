@@ -1,4 +1,5 @@
 #include <HybridNumbrixSolver.h>
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
@@ -303,9 +304,50 @@ bool numbrix::HybridNumbrixSolver::hasEmptyNeighbor(const int &i, const int &j)
     return (empty(i-1, j) || empty(i+1, j) || empty(i, j-1) || empty(i, j+2)); // compiler should optimize this so it returns true at the first empty cell
 }
 
-bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, const int &target)
+bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, const int &start, const int &current, const int &target, const Direction &from)
 {
-    return false;
+    if (current == target) {
+        // load up the next segment and send
+        auto nextSegment = segmentQueue.top();
+        segmentQueue.pop();
+        int nextStart = std::get<0>(nextSegment);
+        auto [ni, nj] = locations[nextStart];
+        if (!solveSegment(ni, nj, nextStart, nextStart, std::get<1>(nextSegment), NONE)) {
+            // Put the following segment back on the stack and try again
+            segmentQueue.push(nextSegment);
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
+    int upPriority, rightPriority, downPriority, leftPriority;
+    switch (from) {
+        case UP:
+            upPriority = -1;
+            break;
+        case RIGHT:
+            rightPriority = -1;
+            break;
+        case DOWN:
+            downPriority = -1;
+            break;
+        case LEFT:
+            leftPriority = -1;
+            break;
+    }
+
+    
+}
+
+int numbrix::HybridNumbrixSolver::rankSegment(const int &start, const int &end)
+{
+    const auto [i, j] = locations[start];
+    const auto [oi, oj] = locations[end];
+    int distance = abs(i-oi) + abs(j-oj);
+    int numSep = end-start;
+    return numSep - distance;
 }
 
 bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
@@ -353,13 +395,26 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
             }
         }
         segments.push_back({item, i});
-        
     }
+    std::sort(segments.begin(), segments.end(), [=](const std::tuple<int,int> &a, const std::tuple<int,int> &b) {
+        return rankSegment(std::get<0>(a), std::get<1>(a)) > rankSegment(std::get<0>(b), std::get<1>(b));
+    });
+    // add segments to queue
+    std::cout << "Segments to be added" << std::endl;
+    for (auto segment:segments) {
+        std::cout << std::get<0>(segment) << " " << std::get<1>(segment) << std::endl;
+        segmentQueue.push(segment);
+    }
+    auto startSegment = segmentQueue.top();
+    segmentQueue.pop();
+    int start = std::get<0>(startSegment);
+    auto [i, j] = locations[start];
+    bool result = solveSegment(i, j, start, start, std::get<1>(startSegment), NONE);
     maxValue = 0;
     valuesInBoard.clear();
     positive.clear();
     negative.clear();
     locations.clear();
     while (!segmentQueue.empty()) segmentQueue.pop();
-    return false;
+    return result;
 }
