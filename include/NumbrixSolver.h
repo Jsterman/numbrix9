@@ -11,6 +11,9 @@ enum Direction {
     LEFT
 };
 
+std::string toString(Direction d);
+Direction reverseDirection(Direction d);
+
 class NumbrixSolver {
 public:
     virtual bool solve(NumbrixBoard* board) = 0;

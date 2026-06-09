@@ -3,6 +3,13 @@
 #include <iostream>
 #include <vector>
 
+using std::cout;
+using std::endl;
+using numbrix::Coordinates;
+using std::vector;
+template <typename T>
+using set = std::unordered_set<T>;
+
 bool numbrix::HybridNumbrixSolver::hasValue(const int &value) const
 {
     auto iter = valuesInBoard.find(value);
@@ -299,46 +306,174 @@ bool numbrix::HybridNumbrixSolver::empty(const int &i, const int &j)
     return board->getValue(i, j) == 0;
 }
 
+bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace()
+{
+    std::unordered_set<Coordinates> posInPath;
+    int startValue;
+    bool accending = true;
+    if (hasValue(maxValue)) {
+        startValue = maxValue;
+        for (auto num : negative) {
+            if (num < startValue) startValue = num;
+        }
+        accending = false;
+    }
+    else {
+        startValue = 1;
+        for (auto num : positive) {
+            if (num > startValue) startValue = num;
+        }
+    }
+    auto [i,j] = locations[startValue];
+    Coordinates start = {i,j};
+    return recursiveEmptySpaceFinder(start, startValue, posInPath, accending);
+}
+
+bool numbrix::HybridNumbrixSolver::recursiveEmptySpaceFinder(const Coordinates &currentPos, const int &currentValue, std::unordered_set<Coordinates> &currentPath, bool accending)
+{
+    int valInCell = board->getValue(currentPos.x, currentPos.y);
+    if (valInCell != 0 && valInCell != currentValue) return false;
+    currentPath.insert(currentPos);
+    if (accending && currentValue == maxValue)  {
+        int startValue = maxValue;
+        for (auto num : negative) {
+            if (num < startValue) startValue = num;
+        }
+        auto [i, j] = locations[startValue];
+        Coordinates start = {i,j};
+        return recursiveEmptySpaceFinder(start, startValue, currentPath, false);
+    }
+    if (!accending && currentValue == 1) return true;
+    
+    int nextValue = (accending) ? currentValue+1:currentValue-1;
+    Coordinates next (currentPos);
+    next.x--;
+    if (next.x >= 0 && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+        return true;
+    }
+    next.x += 2;
+    if (next.x < numRows && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+        return true;
+    }
+    next.x--;
+    next.y--;
+    if (next.y >= 0 && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+        return true;
+    }
+    next.y += 2;
+    if (next.y < numCols && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+        return true;
+    }
+
+    currentPath.erase(currentPos);
+    return false;
+}
+
 bool numbrix::HybridNumbrixSolver::hasEmptyNeighbor(const int &i, const int &j)
 {
     return (empty(i-1, j) || empty(i+1, j) || empty(i, j-1) || empty(i, j+2)); // compiler should optimize this so it returns true at the first empty cell
 }
 
-bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, const int &start, const int &current, const int &target, const Direction &from)
+Coordinates numbrix::HybridNumbrixSolver::getCoordinates(const int &i, const int &j, const Direction &d)
+{
+    switch (d) {
+        case UP:
+        return Coordinates(i-1, j);
+        case DOWN:
+        return Coordinates(i+1, j);
+        case LEFT:
+        return Coordinates(i, j-1);
+        case RIGHT:
+        return Coordinates(i, j+1);
+        default:
+        return Coordinates(i,j);
+    }
+}
+
+int numbrix::HybridNumbrixSolver::rankDirection(const int &i, const int &j, const Direction &d, const int& valueToPut, const Direction &from, const int& target, const Coordinates& targetCoordinates)
+{
+    // if you're trying to go the same direction you came from, don't
+    if (d == from) return ImpassableScore;
+    // if you're trying to go out of bounds, don't
+    if ((i == 0 && d == UP) || (i == numRows-1 && d == DOWN) 
+    || (j == 0 && d == LEFT) || (j == numCols-1 && d == RIGHT)) return ImpassableScore;
+    // if you're trying to enter an occupied cell, don't
+    Coordinates next = getCoordinates(i, j, d);
+    if (Coordinates::getDistanceBetweenCoordinates(next, targetCoordinates) > target-valueToPut) return ImpassableScore;
+    int nextValue = board->getValue(next.x, next.y);
+    if (valueToPut == target && nextValue == target) return CompletedPathNeighborScore;
+    if (nextValue != 0) return ImpassableScore;
+    int score = 0;
+    if (d != DOWN)  score += scoreCell(next.x-1, next.y, valueToPut);
+    if (d != UP)    score += scoreCell(next.x+1, next.y, valueToPut);
+    if (d != RIGHT) score += scoreCell(next.x, next.y-1, valueToPut);
+    if (d != LEFT)  score += scoreCell(next.x, next.y+1, valueToPut);
+    return score;
+}
+
+int numbrix::HybridNumbrixSolver::scoreCell(const int &i, const int &j, const int &valueInNeighbor)
+{
+    if (i < 0 || i >= numRows || j < 0 || j >= numCols) return WallNeighborScore;
+    int value = board->getValue(i, j);
+    if (value == 0) return EmptyNeighborScore;
+    if (value == valueInNeighbor+1) return CompletesPathScore;
+    if (positive.find(value) != positive.end() || negative.find(value) != negative.end()) {
+        return UnfinishedRouteScore;
+    }
+    else {
+        return CompletedPathNeighborScore;
+    }
+}
+
+bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, const int &start, const int &current, const int &target, const Coordinates& targetCoordinates, const Direction &from)
 {
     if (current == target) {
+        // check if the current path is valid
+        if (!hasSufficientEmptySpace()) return false;
         // load up the next segment and send
-        auto nextSegment = segmentQueue.top();
-        segmentQueue.pop();
-        int nextStart = std::get<0>(nextSegment);
-        auto [ni, nj] = locations[nextStart];
-        if (!solveSegment(ni, nj, nextStart, nextStart, std::get<1>(nextSegment), NONE)) {
-            // Put the following segment back on the stack and try again
-            segmentQueue.push(nextSegment);
-            return false;
+        if (segmentStack.empty()) {
+            return true;
         }
         else {
+            auto nextSegment = segmentStack.top();
+            segmentStack.pop();
+            int nextStart = std::get<0>(nextSegment);
+            int nextEnd = std::get<1>(nextSegment);
+            auto [ni, nj] = locations[nextStart];
+            auto [ei, ej] = locations[nextEnd];
+            Coordinates nextTargetCoords = {ei, ej};
+            if (!solveSegment(ni, nj, nextStart, nextStart, nextEnd, nextTargetCoords, NONE)) {
+                // Put the following segment back on the stack and try again
+                segmentStack.push(nextSegment);
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+    }
+    board->setValue(i, j, current);
+    int priorities[] = {0,0,0,0};
+    Direction directionsToTest[] = {UP, RIGHT, DOWN, LEFT};
+    for (int k = 0; k < 4; k++) {
+        priorities[k] = rankDirection(i, j, directionsToTest[k], current+1, from, target, targetCoordinates);
+    }
+    std::sort(directionsToTest, directionsToTest+4, [=](const Direction& a, const Direction& b) {
+        return priorities[a] > priorities[b];
+    });
+    // cout << "Directions and their priorities:" << endl;
+    for (int k = 0; k < 4; k++) {
+        Direction nextDirection = directionsToTest[k];
+        // cout << toString(nextDirection) << ": " << priorities[nextDirection] << endl;
+        // If the potential next direction is out of bounds or otherwise not a valid direction, don't go there. Since it is sorted in decending priority, as soon as we hit one we're done
+        if (priorities[nextDirection] == ImpassableScore) break;
+        Coordinates next = getCoordinates(i, j, directionsToTest[k]);
+        if (solveSegment(next.x, next.y, start, current+1, target, targetCoordinates, reverseDirection(nextDirection))) {
             return true;
         }
     }
-
-    int upPriority, rightPriority, downPriority, leftPriority;
-    switch (from) {
-        case UP:
-            upPriority = -1;
-            break;
-        case RIGHT:
-            rightPriority = -1;
-            break;
-        case DOWN:
-            downPriority = -1;
-            break;
-        case LEFT:
-            leftPriority = -1;
-            break;
-    }
-
-    
+    board->setValue(i, j, 0);
+    return false;
 }
 
 int numbrix::HybridNumbrixSolver::rankSegment(const int &start, const int &end)
@@ -384,7 +519,7 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
         changed |= checkNegative();
     }
 
-    std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
+    // std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
 
     std::vector<std::tuple<int,int>> segments;
     for (auto item : positive) {
@@ -394,27 +529,33 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
                 break;
             }
         }
-        segments.push_back({item, i});
+        if (i != maxValue) segments.push_back({item, i});
     }
     std::sort(segments.begin(), segments.end(), [=](const std::tuple<int,int> &a, const std::tuple<int,int> &b) {
         return rankSegment(std::get<0>(a), std::get<1>(a)) > rankSegment(std::get<0>(b), std::get<1>(b));
     });
     // add segments to queue
-    std::cout << "Segments to be added" << std::endl;
+    vector<vector<vector<Coordinates>>> possiblePaths;
+    // cout << "Segments to be added" << endl;
     for (auto segment:segments) {
-        std::cout << std::get<0>(segment) << " " << std::get<1>(segment) << std::endl;
-        segmentQueue.push(segment);
+        // cout << std::get<0>(segment) << " " << std::get<1>(segment) << endl;
+        segmentStack.push(segment);
     }
-    auto startSegment = segmentQueue.top();
-    segmentQueue.pop();
+    auto startSegment = segmentStack.top();
+    segmentStack.pop();
     int start = std::get<0>(startSegment);
+    int end = std::get<1>(startSegment);
     auto [i, j] = locations[start];
-    bool result = solveSegment(i, j, start, start, std::get<1>(startSegment), NONE);
+    auto [oi, oj] = locations[end];
+    Coordinates startC = {i,j};
+    Coordinates endC = {oi,oj};
+    int steps = end-start;
+    bool result = solveSegment(i, j, start, start, end, endC, NONE);
     maxValue = 0;
     valuesInBoard.clear();
     positive.clear();
     negative.clear();
     locations.clear();
-    while (!segmentQueue.empty()) segmentQueue.pop();
+    while (!segmentStack.empty()) segmentStack.pop();
     return result;
 }
