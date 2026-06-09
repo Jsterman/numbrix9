@@ -508,7 +508,7 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
         changed |= checkNegative();
     }
 
-    std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
+    // std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
 
     std::vector<Segment> segments;
     for (auto item : positive) {
