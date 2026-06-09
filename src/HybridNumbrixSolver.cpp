@@ -44,7 +44,8 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
     auto it = thisList->begin();
     while (it != thisList->end()) {
         int value = *it;
-        const auto [i, j] = locations.at(value);
+        Coordinates c = locations.at(value);
+        Coordinates next(c);
         nextValue = pos ? value+1 : value-1;
         twoAfter = pos ? value+2 : value-2;
         if (hasValue(nextValue)) {
@@ -53,29 +54,29 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
             continue;
         }
         else if (hasValue(twoAfter)) {
-            const auto [oi, oj] = locations.at(twoAfter);
+            Coordinates tAL = locations.at(twoAfter);
 
-            int nexti = i, nextj = j;
+            Coordinates nextL;
             bool foundSpot = false;
 
-            if (abs(i-oi) == 2 ) {
-                nexti = (i+oi)/2;
+            if (abs(c.x-tAL.x) == 2 ) {
+                nextL.x = (c.x+tAL.x)/2;
                 foundSpot = true;
             }
-            else if (abs(j-oj) == 2) {
-                nextj = (j+oj)/2;
+            else if (abs(c.y-tAL.y) == 2) {
+                nextL.y = (c.y+tAL.y)/2;
                 foundSpot = true;
             }
             else {
-                bool one = empty(i, oj);
-                bool other = empty(oi, j);
+                bool one = empty({c.x, tAL.y});
+                bool other = empty({tAL.x, c.y});
 
                 if (one ^ other) { // xor
                     if (one) {
-                        nextj = oj;
+                        nextL.y = tAL.y;
                     }
                     else {
-                        nexti = oi;
+                        nextL.x = tAL.x;
                     }
                     foundSpot = true;
                 }
@@ -87,76 +88,76 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
                     int valueOppositeTwoAhead;
                     // get the column number of the cell on the same row as this value
                     int sameRowCol;
-                    if (j < oj) {
-                        sameRowCol = j+2;
+                    if (c.y < tAL.y) {
+                        sameRowCol = c.y+2;
                     }
                     else {
-                        sameRowCol = j-2;
+                        sameRowCol = c.y-2;
                     }
                     // get the row number of the cell on the same column as twoAfter
                     int sameColRow;
-                    if (oi > i) {
-                        sameColRow = oi-2;
+                    if (tAL.x > c.x) {
+                        sameColRow = tAL.x-2;
                     }
                     else {
-                        sameColRow = oi+2;
+                        sameColRow = tAL.x+2;
                     }
                     if (sameRowCol < 0 || sameRowCol >= numCols) {
                         valueOppositeInitial = -1;
                     }
                     else {
-                        valueOppositeInitial = board->getValue(i, sameRowCol);
+                        valueOppositeInitial = board->getValue(c.x, sameRowCol);
                     }
                     if (sameColRow < 0 || sameColRow >= numRows) {
                         valueOppositeTwoAhead = -1;
                     }
                     else {
-                        valueOppositeTwoAhead = board->getValue(sameColRow, oj);
+                        valueOppositeTwoAhead = board->getValue(sameColRow, tAL.y);
                     }
                     if (!hasOtherPossiblePath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
                         foundSpot = true;
-                        nexti = (sameColRow + oi)/2;
-                        nextj = (sameRowCol + j)/2;
+                        nextL.x = (sameColRow + tAL.x)/2;
+                        nextL.y = (sameRowCol + c.y)/2;
                     }
                     else {
                         // now we do the same checks for the other side
-                        if (i < oi) {
-                            sameColRow = i+2;
+                        if (c.x < tAL.x) {
+                            sameColRow = c.x+2;
                         }
                         else {
-                            sameColRow = i-2;
+                            sameColRow = c.x-2;
                         }
-                        if (oj > j) {
-                            sameRowCol = oj-2;
+                        if (tAL.y > c.y) {
+                            sameRowCol = tAL.y-2;
                         }
                         else {
-                            sameRowCol = oj+2;
+                            sameRowCol = tAL.y+2;
                         }
 
                         if (sameRowCol < 0 || sameRowCol >= numCols) {
                             valueOppositeTwoAhead = -1;
                         }
                         else {
-                            valueOppositeTwoAhead = board->getValue(oi, sameRowCol);
+                            valueOppositeTwoAhead = board->getValue(tAL.x, sameRowCol);
                         }
 
                         if (sameColRow < 0 || sameColRow >= numRows) {
                             valueOppositeInitial = -1;
                         }
                         else {
-                            valueOppositeInitial = board->getValue(sameColRow, j);
+                            valueOppositeInitial = board->getValue(sameColRow, c.y);
                         }
                         if (!hasOtherPossiblePath(value, twoAfter, valueOppositeInitial, valueOppositeTwoAhead)) {
                             foundSpot = true;
-                            nexti = (sameColRow + i)/2;
-                            nextj = (sameRowCol + oj)/2;
+                            nextL.x = (sameColRow + c.x)/2;
+                            nextL.y = (sameRowCol + tAL.y)/2;
                         }
                     }
                 }
             }
 
             if (foundSpot) {
-                insertValue(nexti, nextj, nextValue);
+                insertValue(nextL, nextValue);
                 otherList->erase(otherList->find(twoAfter));
                 it = thisList->erase(it);
                 changed = true;
@@ -168,48 +169,47 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
         else {
             int count = 0;
             bool up = false, down = false, left = false, right = false;
-            if (empty(i-1, j)){ 
+            if (empty(c.getCoordinatesUp())){ 
                 count++;
                 up = true;
             }
-            if (empty(i+1, j)) {
+            if (empty(c.getCoordinatesDown())) {
                 count++;
                 down = true;
             }
-            if (empty(i, j-1)) {
+            if (empty(c.getCoordinatesLeft())) {
                 count++;
                 left = true;
             }
-            if (empty(i, j+1)) {
+            if (empty(c.getCoordinatesRight())) {
                 count++;
                 right = true;
             }
-            if (count > 1 && up && !isValidPath(i-1, j, nextValue, DOWN)) {
+            if (count > 1 && up && !isValidPath(c.getCoordinatesUp(), nextValue, DOWN)) {
                 count--;
                 up = false;
             }
-            if (count > 1 && down && !isValidPath(i+1, j, nextValue, UP)) {
+            if (count > 1 && down && !isValidPath(c.getCoordinatesDown(), nextValue, UP)) {
                 count--;
                 down = false;
             }
-            if (count > 1 && left && !isValidPath(i, j-1, nextValue, RIGHT)) {
+            if (count > 1 && left && !isValidPath(c.getCoordinatesLeft(), nextValue, RIGHT)) {
                 count--;
                 left = false;
             }
-            if (count > 1 && right && !isValidPath(i, j+1, nextValue, LEFT)) {
+            if (count > 1 && right && !isValidPath(c.getCoordinatesRight(), nextValue, LEFT)) {
                 count--;
                 right = false;
             }
             if (count == 1) {
-                int nexti = i;
-                int nextj = j;
+                Coordinates next;
 
-                if (up) nexti = i-1;
-                else if (down) nexti = i+1;
-                else if (left) nextj = j-1;
-                else nextj = j+1;
+                if (up) next = c.getCoordinatesUp();
+                else if (down) next = c.getCoordinatesDown();
+                else if (left) next = c.getCoordinatesLeft();
+                else next = c.getCoordinatesRight();
 
-                insertValue(nexti, nextj, nextValue);
+                insertValue(next, nextValue);
                 thisList->insert(nextValue);
                 it = thisList->erase(it);
                 changed = true;
@@ -257,53 +257,63 @@ bool numbrix::HybridNumbrixSolver::hasOtherPossiblePath(const int &thisValue, co
     return false;
 }
 
-bool numbrix::HybridNumbrixSolver::isValidPath(const int &i, const int &j, const int &value, const Direction &from)
+// bool numbrix::HybridNumbrixSolver::isCellOccupied(const Coordinates &coordinates)
+// {
+//     return occupiedCells.find(coordinates) != occupiedCells.end();
+// }
+
+bool numbrix::HybridNumbrixSolver::isValidPath(const Coordinates& c, const int &value, const Direction &from)
 {
     // If we didn't come from the top, check if the path can go through the cell above
     if (from != UP) {
-        int upVal = (i-1 < 0) ? -1 : board->getValue(i-1, j);
+        Coordinates up = c.getCoordinatesUp();
+        int upVal = (up.x < 0) ? -1 : board->getValue(up.x, up.y);
         if (upVal == 0 || abs(value - upVal) == 1) {
             return true;
         }
     }
     // If we didn't come from the right, check if the path can go through the cell to the right
     if (from != RIGHT) {
-        int rightVal = (j+1 >= numCols) ? -1 : board->getValue(i, j+1);
+        Coordinates right = c.getCoordinatesRight();
+        int rightVal = (right.y >= numCols) ? -1 : board->getValue(right.x, right.y);
         if (rightVal == 0 || abs(value-rightVal) == 1) {
             return true;
         }
     }
     // If we didn't come from the bottom, check if the path can go through the cell below
     if (from != DOWN) {
-        int downVal = (i+1 >= numRows) ? -1 : board->getValue(i+1, j);
+        Coordinates down = c.getCoordinatesDown();
+        int downVal = (down.x >= numRows) ? -1 : board->getValue(down.x, down.y);
         if (downVal == 0 || abs(value-downVal) == 1) {
             return true;
         }
     }
     // if we didn't come from the left, check if the path can go through the cell to the left
     if (from != LEFT) {
-        int leftVal = (j-1 < 0) ? -1 : board->getValue(i, j-1);
+        Coordinates left = c.getCoordinatesLeft();
+        int leftVal = (left.y < 0) ? -1 : board->getValue(left.x, left.y);
         if (leftVal == 0 || abs(value-leftVal) == 1) {
             return true;
-        } 
+        }
     }
 
     return false;
 }
 
-void numbrix::HybridNumbrixSolver::insertValue(const int &i, const int &j, const int &value)
+void numbrix::HybridNumbrixSolver::insertValue(const Coordinates& c, const int &value)
 {
-    board->setValue(i, j, value);
-    locations.insert({value, {i, j}});
+    board->setValue(c.x, c.y, value);
+    locations.insert({value, c});
+    // occupiedCells.insert(location);
     valuesInBoard.insert(value);
 }
 
-bool numbrix::HybridNumbrixSolver::empty(const int &i, const int &j)
+bool numbrix::HybridNumbrixSolver::empty(const Coordinates& c)
 {
-    if (i < 0 || i >= numRows || j < 0 || j >= numCols) {
+    if (c.x < 0 || c.x >= numRows || c.y < 0 || c.y >= numCols) {
         return false;
     }
-    return board->getValue(i, j) == 0;
+    return board->getValue(c.x, c.y) == 0;
 }
 
 bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace()
@@ -324,8 +334,7 @@ bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace()
             if (num > startValue) startValue = num;
         }
     }
-    auto [i,j] = locations[startValue];
-    Coordinates start = {i,j};
+    Coordinates start = locations[startValue];
     return recursiveEmptySpaceFinder(start, startValue, posInPath, accending);
 }
 
@@ -339,8 +348,7 @@ bool numbrix::HybridNumbrixSolver::recursiveEmptySpaceFinder(const Coordinates &
         for (auto num : negative) {
             if (num < startValue) startValue = num;
         }
-        auto [i, j] = locations[startValue];
-        Coordinates start = {i,j};
+        Coordinates start = locations[startValue];
         return recursiveEmptySpaceFinder(start, startValue, currentPath, false);
     }
     if (!accending && currentValue == 1) return true;
@@ -369,52 +377,36 @@ bool numbrix::HybridNumbrixSolver::recursiveEmptySpaceFinder(const Coordinates &
     return false;
 }
 
-bool numbrix::HybridNumbrixSolver::hasEmptyNeighbor(const int &i, const int &j)
+bool numbrix::HybridNumbrixSolver::hasEmptyNeighbor(const Coordinates& c)
 {
-    return (empty(i-1, j) || empty(i+1, j) || empty(i, j-1) || empty(i, j+2)); // compiler should optimize this so it returns true at the first empty cell
+    return (empty(c.getCoordinatesUp()) || empty(c.getCoordinatesDown()) || empty(c.getCoordinatesLeft()) || empty(c.getCoordinatesRight())); // compiler should optimize this so it returns true at the first empty cell
 }
 
-Coordinates numbrix::HybridNumbrixSolver::getCoordinates(const int &i, const int &j, const Direction &d)
-{
-    switch (d) {
-        case UP:
-        return Coordinates(i-1, j);
-        case DOWN:
-        return Coordinates(i+1, j);
-        case LEFT:
-        return Coordinates(i, j-1);
-        case RIGHT:
-        return Coordinates(i, j+1);
-        default:
-        return Coordinates(i,j);
-    }
-}
-
-int numbrix::HybridNumbrixSolver::rankDirection(const int &i, const int &j, const Direction &d, const int& valueToPut, const Direction &from, const int& target, const Coordinates& targetCoordinates)
+int numbrix::HybridNumbrixSolver::rankDirection(const Coordinates &currentLocation, const Direction &d, const int& valueToPut, const Direction &from, const int& target, const Coordinates& targetCoordinates)
 {
     // if you're trying to go the same direction you came from, don't
     if (d == from) return ImpassableScore;
     // if you're trying to go out of bounds, don't
-    if ((i == 0 && d == UP) || (i == numRows-1 && d == DOWN) 
-    || (j == 0 && d == LEFT) || (j == numCols-1 && d == RIGHT)) return ImpassableScore;
+    if ((currentLocation.x == 0 && d == UP) || (currentLocation.x == numRows-1 && d == DOWN) 
+    || (currentLocation.y == 0 && d == LEFT) || (currentLocation.y == numCols-1 && d == RIGHT)) return ImpassableScore;
     // if you're trying to enter an occupied cell, don't
-    Coordinates next = getCoordinates(i, j, d);
+    Coordinates next = currentLocation.getCoordinatesInDirection(d);
     if (Coordinates::getDistanceBetweenCoordinates(next, targetCoordinates) > target-valueToPut) return ImpassableScore;
     int nextValue = board->getValue(next.x, next.y);
     if (valueToPut == target && nextValue == target) return CompletedPathNeighborScore;
     if (nextValue != 0) return ImpassableScore;
     int score = 0;
-    if (d != DOWN)  score += scoreCell(next.x-1, next.y, valueToPut);
-    if (d != UP)    score += scoreCell(next.x+1, next.y, valueToPut);
-    if (d != RIGHT) score += scoreCell(next.x, next.y-1, valueToPut);
-    if (d != LEFT)  score += scoreCell(next.x, next.y+1, valueToPut);
+    if (d != DOWN)  score += scoreCell(currentLocation.getCoordinatesInDirection(UP), valueToPut);
+    if (d != UP)    score += scoreCell(currentLocation.getCoordinatesInDirection(DOWN), valueToPut);
+    if (d != RIGHT) score += scoreCell(currentLocation.getCoordinatesInDirection(LEFT), valueToPut);
+    if (d != LEFT)  score += scoreCell(currentLocation.getCoordinatesInDirection(RIGHT), valueToPut);
     return score;
 }
 
-int numbrix::HybridNumbrixSolver::scoreCell(const int &i, const int &j, const int &valueInNeighbor)
+int numbrix::HybridNumbrixSolver::scoreCell(const Coordinates &currentLocation, const int &valueInNeighbor)
 {
-    if (i < 0 || i >= numRows || j < 0 || j >= numCols) return WallNeighborScore;
-    int value = board->getValue(i, j);
+    if (currentLocation.x < 0 || currentLocation.x >= numRows || currentLocation.y < 0 || currentLocation.y >= numCols) return WallNeighborScore;
+    int value = board->getValue(currentLocation.x, currentLocation.y);
     if (value == 0) return EmptyNeighborScore;
     if (value == valueInNeighbor+1) return CompletesPathScore;
     if (positive.find(value) != positive.end() || negative.find(value) != negative.end()) {
@@ -425,9 +417,9 @@ int numbrix::HybridNumbrixSolver::scoreCell(const int &i, const int &j, const in
     }
 }
 
-bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, const int &start, const int &current, const int &target, const Coordinates& targetCoordinates, const Direction &from)
+bool numbrix::HybridNumbrixSolver::solveSegment(const Coordinates& currentLocation,const int &currentValue, const Segment &currentSegment, const Coordinates& targetCoordinates, const Direction &from)
 {
-    if (current == target) {
+    if (currentValue == currentSegment.endVal) {
         // check if the current path is valid
         if (!hasSufficientEmptySpace()) return false;
         // load up the next segment and send
@@ -437,12 +429,9 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, cons
         else {
             auto nextSegment = segmentStack.top();
             segmentStack.pop();
-            int nextStart = std::get<0>(nextSegment);
-            int nextEnd = std::get<1>(nextSegment);
-            auto [ni, nj] = locations[nextStart];
-            auto [ei, ej] = locations[nextEnd];
-            Coordinates nextTargetCoords = {ei, ej};
-            if (!solveSegment(ni, nj, nextStart, nextStart, nextEnd, nextTargetCoords, NONE)) {
+            Coordinates start = locations[nextSegment.startVal];
+            Coordinates nextTargetCoords = locations[nextSegment.endVal];
+            if (!solveSegment(start, nextSegment.startVal, nextSegment, nextTargetCoords, NONE)) {
                 // Put the following segment back on the stack and try again
                 segmentStack.push(nextSegment);
                 return false;
@@ -452,11 +441,11 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, cons
             }
         }
     }
-    board->setValue(i, j, current);
+    board->setValue(currentLocation.x, currentLocation.y, currentValue);
     int priorities[] = {0,0,0,0};
     Direction directionsToTest[] = {UP, RIGHT, DOWN, LEFT};
     for (int k = 0; k < 4; k++) {
-        priorities[k] = rankDirection(i, j, directionsToTest[k], current+1, from, target, targetCoordinates);
+        priorities[k] = rankDirection(currentLocation, directionsToTest[k], currentValue+1, from, currentSegment.endVal, targetCoordinates);
     }
     std::sort(directionsToTest, directionsToTest+4, [=](const Direction& a, const Direction& b) {
         return priorities[a] > priorities[b];
@@ -467,21 +456,21 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const int &i, const int &j, cons
         // cout << toString(nextDirection) << ": " << priorities[nextDirection] << endl;
         // If the potential next direction is out of bounds or otherwise not a valid direction, don't go there. Since it is sorted in decending priority, as soon as we hit one we're done
         if (priorities[nextDirection] == ImpassableScore) break;
-        Coordinates next = getCoordinates(i, j, directionsToTest[k]);
-        if (solveSegment(next.x, next.y, start, current+1, target, targetCoordinates, reverseDirection(nextDirection))) {
+        Coordinates next = currentLocation.getCoordinatesInDirection(directionsToTest[k]);
+        if (solveSegment(next, currentValue+1, currentSegment, targetCoordinates, reverseDirection(nextDirection))) {
             return true;
         }
     }
-    board->setValue(i, j, 0);
+    board->setValue(currentLocation.x, currentLocation.y, 0);
     return false;
 }
 
-int numbrix::HybridNumbrixSolver::rankSegment(const int &start, const int &end)
+int numbrix::HybridNumbrixSolver::rankSegment(const Segment &seg)
 {
-    const auto [i, j] = locations[start];
-    const auto [oi, oj] = locations[end];
-    int distance = abs(i-oi) + abs(j-oj);
-    int numSep = end-start;
+    Coordinates startC = locations[seg.startVal];
+    Coordinates endC = locations[seg.endVal];
+    int distance = Coordinates::getDistanceBetweenCoordinates(startC, endC);
+    int numSep = seg.endVal-seg.startVal;
     return numSep - distance;
 }
 
@@ -519,20 +508,20 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
         changed |= checkNegative();
     }
 
-    // std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
+    std::cout << "Was able to get this with jiggery-pokery: " << std::endl << board->toString() << std::endl << std::endl;
 
-    std::vector<std::tuple<int,int>> segments;
+    std::vector<Segment> segments;
     for (auto item : positive) {
         int i;
-        for (i = item+1; i < maxValue; i++) {
+        for (i = item+1; i < maxValue+1; i++) {
             if (hasValue(i)) {
                 break;
             }
         }
-        if (i != maxValue) segments.push_back({item, i});
+        if (i != maxValue+1) segments.push_back({item, i});
     }
-    std::sort(segments.begin(), segments.end(), [=](const std::tuple<int,int> &a, const std::tuple<int,int> &b) {
-        return rankSegment(std::get<0>(a), std::get<1>(a)) > rankSegment(std::get<0>(b), std::get<1>(b));
+    std::sort(segments.begin(), segments.end(), [=](const Segment &a, const Segment &b) {
+        return rankSegment(a) > rankSegment(b);
     });
     // add segments to queue
     vector<vector<vector<Coordinates>>> possiblePaths;
@@ -543,14 +532,9 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
     }
     auto startSegment = segmentStack.top();
     segmentStack.pop();
-    int start = std::get<0>(startSegment);
-    int end = std::get<1>(startSegment);
-    auto [i, j] = locations[start];
-    auto [oi, oj] = locations[end];
-    Coordinates startC = {i,j};
-    Coordinates endC = {oi,oj};
-    int steps = end-start;
-    bool result = solveSegment(i, j, start, start, end, endC, NONE);
+    Coordinates startC = locations[startSegment.startVal];
+    Coordinates endC = locations[startSegment.endVal];
+    bool result = solveSegment(startC, startSegment.startVal, startSegment, endC, NONE);
     maxValue = 0;
     valuesInBoard.clear();
     positive.clear();

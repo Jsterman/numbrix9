@@ -28,6 +28,8 @@ target_sources(numbrix_board
       include/RecursiveNumbrixSolver.h
       include/NumbrixBoardTracking.h
       include/HybridNumbrixSolver.h
+      include/Coordinates.h
+      include/Segment.h
 )
 
 target_link_libraries(numbrix9
