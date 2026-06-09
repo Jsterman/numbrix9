@@ -56,7 +56,7 @@ bool numbrix::HybridNumbrixSolver::checkDirection(bool pos)
         else if (hasValue(twoAfter)) {
             Coordinates tAL = locations.at(twoAfter);
 
-            Coordinates nextL;
+            Coordinates nextL = c;
             bool foundSpot = false;
 
             if (abs(c.x-tAL.x) == 2 ) {
