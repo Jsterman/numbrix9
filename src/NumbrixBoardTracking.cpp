@@ -2,6 +2,8 @@
 
 numbrix::NumbrixBoardTracking::NumbrixBoardTracking(std::string filename) : NumbrixBoard(filename)
 {
+    numberOfReads = 0;
+    numberOfWrites = 0;
 }
 
 int numbrix::NumbrixBoardTracking::getValue(const int &row, const int &column)
