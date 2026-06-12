@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <stdexcept>
+#include <Coordinates.h>
 
 namespace numbrix {
     
@@ -19,8 +20,8 @@ public:
     NumbrixBoard(std::string filename);
     NumbrixBoard(const NumbrixBoard&);
     ~NumbrixBoard();
-    virtual int getValue(const int &row, const int &column);
-    virtual void setValue(const int &row, const int &column, const int &value);
+    virtual int getValue(const Coordinates& c);
+    virtual void setValue(const Coordinates& c, const int &value);
     void readBoardFromFile(const std::string &filename);
     void copyBoard(const NumbrixBoard &other);
 
