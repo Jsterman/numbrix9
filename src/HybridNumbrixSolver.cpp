@@ -316,7 +316,7 @@ bool numbrix::HybridNumbrixSolver::empty(const Coordinates& c)
     return board->getValue(c) == 0;
 }
 
-bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace()
+bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace(bool write)
 {
     std::unordered_set<Coordinates> posInPath;
     int startValue;
@@ -335,45 +335,47 @@ bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace()
         }
     }
     Coordinates start = locations[startValue];
-    return recursiveEmptySpaceFinder(start, startValue, posInPath, accending);
+    return recursiveEmptySpaceFinder(start, startValue, posInPath, accending, write);
 }
 
-bool numbrix::HybridNumbrixSolver::recursiveEmptySpaceFinder(const Coordinates &currentPos, const int &currentValue, std::unordered_set<Coordinates> &currentPath, bool accending)
+bool numbrix::HybridNumbrixSolver::recursiveEmptySpaceFinder(const Coordinates &currentPos, const int &currentValue, std::unordered_set<Coordinates> &currentPath, bool accending, bool write)
 {
     int valInCell = board->getValue(currentPos);
     if (valInCell != 0 && valInCell != currentValue) return false;
     currentPath.insert(currentPos);
+    if (write) board->setValue(currentPos, currentValue);
     if (accending && currentValue == maxValue)  {
         int startValue = maxValue;
         for (auto num : negative) {
             if (num < startValue) startValue = num;
         }
         Coordinates start = locations[startValue];
-        return recursiveEmptySpaceFinder(start, startValue, currentPath, false);
+        return recursiveEmptySpaceFinder(start, startValue, currentPath, false, write);
     }
     if (!accending && currentValue == 1) return true;
     
     int nextValue = (accending) ? currentValue+1:currentValue-1;
     Coordinates next (currentPos);
     next.x--;
-    if (next.x >= 0 && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+    if (next.x >= 0 && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending, write)) {
         return true;
     }
     next.x += 2;
-    if (next.x < numRows && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+    if (next.x < numRows && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending, write)) {
         return true;
     }
     next.x--;
     next.y--;
-    if (next.y >= 0 && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+    if (next.y >= 0 && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending, write)) {
         return true;
     }
     next.y += 2;
-    if (next.y < numCols && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending)) {
+    if (next.y < numCols && currentPath.find(next) == currentPath.end() && recursiveEmptySpaceFinder(next, nextValue, currentPath, accending, write)) {
         return true;
     }
 
     currentPath.erase(currentPos);
+    if (write) board->setValue(currentPos, valInCell);
     return false;
 }
 
@@ -424,6 +426,7 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const Coordinates& currentLocati
         if (!hasSufficientEmptySpace()) return false;
         // load up the next segment and send
         if (segmentStack.empty()) {
+            hasSufficientEmptySpace(true);
             return true;
         }
         else {
