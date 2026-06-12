@@ -393,7 +393,9 @@ int numbrix::HybridNumbrixSolver::rankDirection(const Coordinates &currentLocati
     || (currentLocation.y == 0 && d == LEFT) || (currentLocation.y == numCols-1 && d == RIGHT)) return ImpassableScore;
     // if you're trying to enter an occupied cell, don't
     Coordinates next = currentLocation.getCoordinatesInDirection(d);
-    if (Coordinates::getDistanceBetweenCoordinates(next, targetCoordinates) > target-valueToPut) return ImpassableScore;
+    int distance = Coordinates::getDistanceBetweenCoordinates(next, targetCoordinates);
+    // Here the physical distance cannot exceed the numerical distance and the difference between the two must be even due to the nature of the puzzle
+    if (distance > target-valueToPut || (target-valueToPut-distance) % 2 != 0) return ImpassableScore;
     int nextValue = board->getValue(next);
     if (valueToPut == target && nextValue == target) return CompletedPathNeighborScore;
     if (nextValue != 0) return ImpassableScore;
