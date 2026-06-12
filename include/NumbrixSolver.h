@@ -3,14 +3,6 @@
 
 namespace numbrix {
 
-enum Direction {
-    NONE=-1,
-    UP,
-    RIGHT,
-    DOWN,
-    LEFT
-};
-
 std::string toString(Direction d);
 Direction reverseDirection(Direction d);
 

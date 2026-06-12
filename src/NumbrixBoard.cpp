@@ -29,16 +29,16 @@ numbrix::NumbrixBoard::~NumbrixBoard()
     }
     delete[] board;
 }
-int numbrix::NumbrixBoard::getValue(const int &i, const int &j)
+int numbrix::NumbrixBoard::getValue(const Coordinates& c)
 {
     if (board == nullptr) return -1;
-    return board[i][j];
+    return board[c.x][c.y];
 }
 
-void numbrix::NumbrixBoard::setValue(const int &row, const int &column, const int &value)
+void numbrix::NumbrixBoard::setValue(const Coordinates& c, const int &value)
 {
     if (board == nullptr) return;
-    board[row][column] = value;
+    board[c.x][c.y] = value;
 }
 
 void numbrix::NumbrixBoard::readBoardFromFile(const std::string &filename)

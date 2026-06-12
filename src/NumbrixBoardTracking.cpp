@@ -6,16 +6,16 @@ numbrix::NumbrixBoardTracking::NumbrixBoardTracking(std::string filename) : Numb
     numberOfWrites = 0;
 }
 
-int numbrix::NumbrixBoardTracking::getValue(const int &row, const int &column)
+int numbrix::NumbrixBoardTracking::getValue(const Coordinates &c)
 {
     numberOfReads++;
-    return NumbrixBoard::getValue(row, column);
+    return NumbrixBoard::getValue(c);
 }
 
-void numbrix::NumbrixBoardTracking::setValue(const int &row, const int &column, const int &value)
+void numbrix::NumbrixBoardTracking::setValue(const Coordinates &c, const int &value)
 {
     numberOfWrites++;
-    NumbrixBoard::setValue(row, column, value);
+    NumbrixBoard::setValue(c, value);
 }
 
 int numbrix::NumbrixBoardTracking::getNumberOfReads() const
