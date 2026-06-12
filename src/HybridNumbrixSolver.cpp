@@ -322,6 +322,9 @@ bool numbrix::HybridNumbrixSolver::hasSufficientEmptySpace(bool write)
     int startValue;
     bool accending = true;
     if (hasValue(maxValue)) {
+        if (hasValue(1)) {
+            return true; // if both 1 and maxValue are on the board
+        }
         startValue = maxValue;
         for (auto num : negative) {
             if (num < startValue) startValue = num;
@@ -345,6 +348,9 @@ bool numbrix::HybridNumbrixSolver::recursiveEmptySpaceFinder(const Coordinates &
     currentPath.insert(currentPos);
     if (write) board->setValue(currentPos, currentValue);
     if (accending && currentValue == maxValue)  {
+        if (hasValue(1)) {
+            return true; // if both 1 and maxValue are on the board
+        }
         int startValue = maxValue;
         for (auto num : negative) {
             if (num < startValue) startValue = num;
@@ -400,10 +406,18 @@ int numbrix::HybridNumbrixSolver::rankDirection(const Coordinates &currentLocati
     if (valueToPut == target && nextValue == target) return CompletedPathNeighborScore;
     if (nextValue != 0) return ImpassableScore;
     int score = 0;
-    if (d != DOWN)  score += scoreCell(currentLocation.getCoordinatesInDirection(UP), valueToPut);
-    if (d != UP)    score += scoreCell(currentLocation.getCoordinatesInDirection(DOWN), valueToPut);
-    if (d != RIGHT) score += scoreCell(currentLocation.getCoordinatesInDirection(LEFT), valueToPut);
-    if (d != LEFT)  score += scoreCell(currentLocation.getCoordinatesInDirection(RIGHT), valueToPut);
+    if (d != DOWN) {
+        score += scoreCell(next.getCoordinatesInDirection(UP), valueToPut);
+    }
+    if (d != UP) {
+        score += scoreCell(next.getCoordinatesInDirection(DOWN), valueToPut);
+    }
+    if (d != RIGHT) {
+        score += scoreCell(next.getCoordinatesInDirection(LEFT), valueToPut);
+    }
+    if (d != LEFT) {
+        score += scoreCell(next.getCoordinatesInDirection(RIGHT), valueToPut);
+    }
     return score;
 }
 
@@ -425,7 +439,12 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const Coordinates& currentLocati
 {
     if (currentValue == currentSegment.endVal) {
         // check if the current path is valid
-        if (!hasSufficientEmptySpace()) return false;
+        if (!hasSufficientEmptySpace()) {
+            // cout << "Insufficient empty space. Backtracking..." << endl;
+            return false;
+        }
+        // cout << "Found a path for segment " << currentSegment << endl;
+        // cout << "Current Board:" << endl << board->toString() << endl << endl;
         // load up the next segment and send
         if (segmentStack.empty()) {
             hasSufficientEmptySpace(true);
@@ -434,10 +453,14 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const Coordinates& currentLocati
         else {
             auto nextSegment = segmentStack.top();
             segmentStack.pop();
+            positive.erase(positive.find(nextSegment.startVal));
+            negative.erase(negative.find(nextSegment.endVal));
             Coordinates start = locations[nextSegment.startVal];
             Coordinates nextTargetCoords = locations[nextSegment.endVal];
             if (!solveSegment(start, nextSegment.startVal, nextSegment, nextTargetCoords, NONE)) {
                 // Put the following segment back on the stack and try again
+                positive.insert(nextSegment.startVal);
+                negative.insert(nextSegment.endVal);
                 segmentStack.push(nextSegment);
                 return false;
             }
@@ -446,6 +469,7 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const Coordinates& currentLocati
             }
         }
     }
+    int oldValue = board->getValue(currentLocation);
     board->setValue(currentLocation, currentValue);
     int priorities[] = {0,0,0,0};
     Direction directionsToTest[] = {UP, RIGHT, DOWN, LEFT};
@@ -466,7 +490,7 @@ bool numbrix::HybridNumbrixSolver::solveSegment(const Coordinates& currentLocati
             return true;
         }
     }
-    board->setValue(currentLocation, 0);
+    board->setValue(currentLocation, oldValue);
     return false;
 }
 
@@ -530,13 +554,15 @@ bool numbrix::HybridNumbrixSolver::solve(NumbrixBoard *board)
     });
     // add segments to queue
     vector<vector<vector<Coordinates>>> possiblePaths;
-    // cout << "Segments to be added" << endl;
+    // cout << "Segments to be added:" << endl;
     for (auto segment:segments) {
-        // cout << std::get<0>(segment) << " " << std::get<1>(segment) << endl;
+        // cout << segment.startVal << " " << segment.endVal << endl;
         segmentStack.push(segment);
     }
     auto startSegment = segmentStack.top();
     segmentStack.pop();
+    positive.erase(positive.find(startSegment.startVal));
+    negative.erase(negative.find(startSegment.endVal));
     Coordinates startC = locations[startSegment.startVal];
     Coordinates endC = locations[startSegment.endVal];
     bool result = solveSegment(startC, startSegment.startVal, startSegment, endC, NONE);

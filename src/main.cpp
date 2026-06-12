@@ -9,7 +9,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration;
 
 int main(int argc, char *argv[]) {
-    std::string filename = "puzzles/easy_may_19_2026.csv";
+    std::string filename = "puzzles/expert_may_17_2026.csv";
     if (argc > 1) {
         filename = std::string(argv[1]);
     }
